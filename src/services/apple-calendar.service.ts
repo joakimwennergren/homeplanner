@@ -45,14 +45,26 @@ class AppleCalendarService {
     try {
       console.log('[Calendar] Fetching from:', this.config.caldavUrl.substring(0, 50) + '...');
       
-      // Use allorigins CORS proxy - more reliable than cors-anywhere
-      const corsProxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(this.config.caldavUrl)}`;
+      // Use local proxy server on port 3001 (running on Raspberry Pi)
+      // Falls back to allorigins.win if local proxy is unavailable
+      const localProxyUrl = `http://localhost:3001/proxy?url=${encodeURIComponent(this.config.caldavUrl)}`;
+      const fallbackProxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(this.config.caldavUrl)}`;
+      
+      let corsProxyUrl = localProxyUrl;
       
       const response = await fetch(corsProxyUrl, {
         method: 'GET',
         headers: {
           'Accept': 'text/calendar',
         },
+      }).catch(async (error) => {
+        console.warn('[Calendar] Local proxy failed, trying fallback:', error.message);
+        return fetch(fallbackProxyUrl, {
+          method: 'GET',
+          headers: {
+            'Accept': 'text/calendar',
+          },
+        });
       });
 
       if (!response.ok) {
