@@ -67,7 +67,7 @@ function CalendarDay({
   );
 
   // Show max 4 events
-  const displayedEvents = dayEvents.slice(0, 4);
+  const displayedEvents = dayEvents.slice(0, 3);
   const moreCount = dayEvents.length - displayedEvents.length;
 
   return (
@@ -107,31 +107,15 @@ function CalendarDay({
           {displayedEvents.map((event) => (
             <div
               key={event.id}
-              className="truncate rounded bg-green-100 px-2 py-0.5 text-xs text-green-800 font-medium"
+              className="truncate rounded bg-accent px-2 py-0.5 text-xs text-white font-medium"
               title={event.title}
             >
               {event.title}
             </div>
           ))}
           {moreCount > 0 && (
-            <div className="text-xs text-gray-600 px-2 py-0.5">
-              +{moreCount} more
-            </div>
+            <div className="text-xs text-gray-600 pb-2">+{moreCount} till</div>
           )}
-        </div>
-      )}
-
-      {/* Local Todos */}
-      {todos.length > 0 && (
-        <div className="mt-2 space-y-1 overflow-hidden">
-          {todos.map((todo, index) => (
-            <div
-              key={index}
-              className="truncate rounded bg-blue-50 px-2 py-1 text-xs text-blue-700"
-            >
-              <span className="font-medium">{todo.time}</span> {todo.title}
-            </div>
-          ))}
         </div>
       )}
     </button>
@@ -186,7 +170,7 @@ function Calendar({
           </button>
         </div>
 
-        <div className="flex items-center gap-8">
+        <div className="flex items-center gap-6">
           <button
             type="button"
             onClick={previousMonth}
@@ -199,7 +183,7 @@ function Calendar({
           <button
             type="button"
             onClick={nextMonth}
-            className="flex h-9 w-9 items-center justify-center rounded-md hover:bg-white mr-1"
+            className="flex h-9 w-9 items-center justify-center rounded-md hover:bg-white"
             aria-label="Next month"
           >
             →
@@ -211,13 +195,13 @@ function Calendar({
       <div className="flex flex-col overflow-hidden rounded-lg w-fit">
         {/* Weekday header */}
         <div
-          className="grid shrink-0 bg-gray-50 select-none"
-          style={{ gridTemplateColumns: "repeat(7, 8rem)" }}
+          className="grid shrink-0 bg-accent select-none "
+          style={{ gridTemplateColumns: "repeat(7, 12rem)" }}
         >
           {WEEKDAYS.map((day) => (
             <div
               key={day}
-              className="border-r border-b border-gray-200 px-3 py-2 text-center text-sm font-medium text-gray-500 last:border-r-0"
+              className="border-r border-b border-gray-200 px-3 py-2 text-center text-sm font-medium text-primary last:border-r-0"
             >
               {day}
             </div>
@@ -228,8 +212,8 @@ function Calendar({
         <div
           className="grid"
           style={{
-            gridTemplateRows: `repeat(${weeks}, 6rem)`,
-            gridTemplateColumns: "repeat(7, 8rem)",
+            gridTemplateRows: `repeat(${weeks}, 8.4rem)`,
+            gridTemplateColumns: "repeat(7, 12rem)",
           }}
         >
           {days.map((date) => (
@@ -325,16 +309,16 @@ export default function App() {
   }, [events, selectedDate]);
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden flex-col">
+    <div className="flex h-screen w-screen overflow-hidden flex-col bg-primary">
       {/* Top Navigation */}
-      <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between">
-        <h1 className="text-lg font-semibold pl-2">Drömhuset 2.0 ❤️</h1>
+      <div className="border-b border-orange-100 px-4 py-3 flex items-center justify-between">
+        <h1 className="text-lg font-semibold">Drömhuset 2.0 ❤️</h1>
         <div className="flex items-center gap-4">
           {isConfigured && (
             <button
               onClick={sync}
               disabled={isLoading}
-              className="px-3 py-1.5 text-sm bg-green-100 text-green-700 rounded hover:bg-green-200 disabled:bg-gray-100 disabled:text-gray-500 transition-colors"
+              className="px-3 py-1.5 text-sm bg-accent text-white rounded transition-colors"
             >
               {isLoading ? "Synkar..." : "Synka kalender"}
             </button>
@@ -344,9 +328,7 @@ export default function App() {
 
       <div className="flex h-full min-h-0">
         {/* Main Calendar Section */}
-        <div
-          className={`${showCalendarPanel ? "w-1/2" : "w-2/3"} h-full min-h-0 bg-slate-100 p-8 transition-all`}
-        >
+        <div className={`w-full h-full min-h-0 bg-primary p-4 transition-all`}>
           <Calendar
             value={selectedDate}
             onChange={setSelectedDate}
@@ -356,27 +338,13 @@ export default function App() {
 
         {/* Apple Calendar Events Panel */}
         {showCalendarPanel && (
-          <div className="w-1/2 h-full min-h-0 border-l border-gray-200 bg-white p-4 overflow-y-auto">
-            {!isConfigured ? (
-              <CalendarConfig
-                onConfigure={configure}
-                isConfigured={isConfigured}
-              />
-            ) : (
-              <CalendarEvents
-                events={todayEvents}
-                isLoading={isLoading}
-                error={error}
-                selectedDate={selectedDate.toDate()}
-              />
-            )}
-          </div>
-        )}
-
-        {/* Todo List */}
-        {!showCalendarPanel && (
-          <div className="w-1/3 h-full min-h-0 border-l border-gray-200 bg-white">
-            <TodoList date={selectedDate} />
+          <div className="w-1/2 h-full min-h-0 border-l border-orange-100 bg-primary p-4 overflow-y-auto">
+            <CalendarEvents
+              events={todayEvents}
+              isLoading={isLoading}
+              error={error}
+              selectedDate={selectedDate.toDate()}
+            />
           </div>
         )}
       </div>

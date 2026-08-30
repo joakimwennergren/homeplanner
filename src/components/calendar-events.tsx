@@ -53,7 +53,7 @@ export function CalendarEvents({
         {events.map((event) => (
           <div
             key={event.id}
-            className="bg-white border-l-4 border-blue-500 rounded shadow-sm p-4 hover:shadow-md transition-shadow"
+            className="bg-white border-l-4 border-secondary rounded shadow-sm p-4 hover:shadow-md transition-shadow"
           >
             <div className="flex justify-between items-start">
               <div className="flex-1">
