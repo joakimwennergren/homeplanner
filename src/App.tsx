@@ -13,6 +13,10 @@ type Todo = {
   title: string;
 };
 
+const capitalMonth = (month: string) => {
+  return month.charAt(0).toUpperCase() + month.slice(1);
+}
+
 const WEEKDAYS = ["Mån", "Tis", "Ons", "Tor", "Fre", "Lör", "Sön"];
 
 function getTodoList(date: Dayjs): Todo[] {
@@ -94,7 +98,7 @@ function CalendarDay({
           className={`
             flex h-8 w-8 items-center justify-center
             rounded-full text-lg
-            ${isToday ? "bg-secondary font-semibold text-black" : ""}
+            ${isToday ? "bg-black font-semibold text-white" : ""}
             ${isSelected && !isToday ? "font-semibold text-blue-600" : ""}
             ${isWeekend && !isToday ? "text-red-600" : ""}
           `}
@@ -153,20 +157,20 @@ function Calendar({
     setCurrentMonth(today.startOf("month"));
     onChange(today);
   };
-
+  
   return (
     <div className="flex h-full min-h-0 flex-col">
       {/* Header */}
       <div className="flex shrink-0 items-center justify-between pb-4 select-none">
         <div className="flex items-center gap-4">
           <h1 className="text-2xl font-semibold">
-            {currentMonth.format("MMMM YYYY")}
+            {capitalMonth(currentMonth.format("MMMM YYYY"))}
           </h1>
 
           <button
             type="button"
             onClick={goToToday}
-            className="rounded-md border border-gray-300 px-3 py-1.5 text-sm hover:bg-white"
+            className="rounded-md border border-gray-300 px-3 py-1.5 text-sm bg-white"
           >
             Idag
           </button>
@@ -313,14 +317,14 @@ export default function App() {
   return (
     <div className="flex h-screen w-screen overflow-hidden flex-col bg-primary">
       {/* Top Navigation */}
-      <div className="border-b border-orange-100 px-4 py-3 flex items-center justify-between">
-        <h1 className="text-lg font-semibold">Drömhuset 2.0 ❤️</h1>
+      <div className="border-b border-black/10 px-4 py-3 flex items-center justify-between">
+        <h1 className="text-4xl font-semibold">Drömhuset 2.0 <span style={{color: "darkred"}}>❤</span>️</h1>
         <div className="flex items-center gap-4">
           {isConfigured && (
             <button
               onClick={sync}
               disabled={isLoading}
-              className="px-3 py-1.5 text-sm bg-accent text-white rounded transition-colors"
+              className="px-3 py-1.5 text-lg bg-accent text-white rounded transition-colors"
             >
               {isLoading ? "Synkar..." : "Synka kalender"}
             </button>
@@ -340,7 +344,7 @@ export default function App() {
 
         {/* Apple Calendar Events Panel */}
         {showCalendarPanel && (
-          <div className="w-1/2 h-full min-h-0 border-l border-orange-100 bg-primary p-4 overflow-y-auto">
+          <div className="w-1/2 h-full min-h-0 border-l border-black/10 bg-primary p-4 overflow-y-auto">
             <CalendarEvents
               events={todayEvents}
               isLoading={isLoading}

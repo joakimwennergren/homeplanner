@@ -74,7 +74,7 @@ export function CalendarEvents({
                 )}
 
                 {event.description && (
-                  <p className="text-sm text-gray-600 mt-2">
+                  <p className="text-sm text-gray-600 mt-2 wrap-anywhere">
                     {event.description}
                   </p>
                 )}
