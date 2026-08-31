@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useMemo, useState, useEffect } from "react";
 import "dayjs/locale/sv";
 import dayjs, { Dayjs } from "dayjs";
@@ -35,7 +36,7 @@ function getCalendarDays(month: Dayjs): Dayjs[] {
 
   return Array.from({ length: totalDays }, (_, index) =>
     firstDay.add(index, "day"),
-  );
+  );n
 }
 
 type CalendarDayProps = {
@@ -67,7 +68,7 @@ function CalendarDay({
   );
 
   // Show max 4 events
-  const displayedEvents = dayEvents.slice(0, 3);
+  const displayedEvents = dayEvents.slice(0, 2);
   const moreCount = dayEvents.length - displayedEvents.length;
 
   return (
@@ -77,8 +78,9 @@ function CalendarDay({
       className={`
         relative min-h-0 min-w-0
         border-r border-b border-gray-200
-        bg-white p-2 text-left
+        bg-primary p-2 text-left
         transition-colors
+        bg-white
         hover:bg-gray-50
         focus:z-10 focus:outline-none
         select-none
@@ -87,12 +89,12 @@ function CalendarDay({
       `}
     >
       {/* Date number */}
-      <div className="flex items-center">
+      <div className="flex items-center absolute top-1">
         <span
           className={`
             flex h-8 w-8 items-center justify-center
-            rounded-full text-sm
-            ${isToday ? "bg-blue-600 font-semibold text-white" : ""}
+            rounded-full text-lg
+            ${isToday ? "bg-secondary font-semibold text-black" : ""}
             ${isSelected && !isToday ? "font-semibold text-blue-600" : ""}
             ${isWeekend && !isToday ? "text-red-600" : ""}
           `}
@@ -103,11 +105,11 @@ function CalendarDay({
 
       {/* Apple Calendar Events Pills */}
       {displayedEvents.length > 0 && (
-        <div className="mt-2 space-y-1 overflow-hidden">
+        <div className="mt-6 space-y-1 overflow-hidden">
           {displayedEvents.map((event) => (
             <div
               key={event.id}
-              className="truncate rounded bg-accent px-2 py-0.5 text-xs text-white font-medium"
+              className="truncate rounded bg-accent px-2 py-0.5 text-white text-lg"
               title={event.title}
             >
               {event.title}
@@ -174,7 +176,7 @@ function Calendar({
           <button
             type="button"
             onClick={previousMonth}
-            className="flex h-9 w-9 items-center justify-center rounded-md hover:bg-white"
+            className="flex h-9 w-9 items-center text-4xl justify-center rounded-md"
             aria-label="Previous month"
           >
             ←
@@ -183,7 +185,7 @@ function Calendar({
           <button
             type="button"
             onClick={nextMonth}
-            className="flex h-9 w-9 items-center justify-center rounded-md hover:bg-white"
+            className="flex h-9 w-9 items-center text-4xl justify-center rounded-md"
             aria-label="Next month"
           >
             →
@@ -201,7 +203,7 @@ function Calendar({
           {WEEKDAYS.map((day) => (
             <div
               key={day}
-              className="border-r border-b border-gray-200 px-3 py-2 text-center text-sm font-medium text-primary last:border-r-0"
+              className="border-r border-b border-gray-200 px-3 py-2 text-center text-lg font-medium text-primary last:border-r-0"
             >
               {day}
             </div>

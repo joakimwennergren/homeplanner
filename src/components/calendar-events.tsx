@@ -55,11 +55,11 @@ export function CalendarEvents({
             key={event.id}
             className="bg-white border-l-4 border-secondary rounded shadow-sm p-4 hover:shadow-md transition-shadow"
           >
-            <div className="flex justify-between items-start">
+            <div className="flex justify-between items-start text-lg">
               <div className="flex-1">
-                <h4 className="font-semibold text-gray-900">{event.title}</h4>
+                <h4 className="font-semibold text-gray-900 text-2xl">{event.title}</h4>
 
-                <div className="flex items-center gap-2 text-sm text-gray-600 mt-1">
+                <div className="flex items-center gap-2 text-md text-gray-600 mt-1">
                   <span>
                     {event.isAllDay
                       ? "All day"
@@ -68,7 +68,7 @@ export function CalendarEvents({
                 </div>
 
                 {event.location && (
-                  <p className="text-sm text-gray-600 mt-2">
+                  <p className="text-gray-600 mt-2">
                     <span className="font-medium">Plats:</span> {event.location}
                   </p>
                 )}
