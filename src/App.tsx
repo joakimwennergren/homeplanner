@@ -166,26 +166,26 @@ function Calendar({
   return (
     <div className="flex h-full min-h-0 flex-col">
       {/* Header */}
-      <div className="flex shrink-0 items-center justify-between pb-4 select-none">
-        <div className="flex items-center gap-4">
-          <h1 className="text-2xl font-semibold">
+      <div className="flex h-12 w-[84rem] max-w-full shrink-0 items-center justify-between select-none">
+        <div className="flex h-10 items-center gap-4">
+          <h1 className="m-0 text-2xl font-semibold leading-none">
             {capitalizeFirstLetter(currentMonth.format("MMMM YYYY"))}
           </h1>
 
           <button
             type="button"
             onClick={goToToday}
-            className="rounded-md border border-gray-300 px-3 py-1.5 text-sm bg-white"
+            className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm"
           >
             Idag
           </button>
         </div>
 
-        <div className="flex items-center gap-6">
+        <div className="flex h-10 items-center gap-3 self-center">
           <button
             type="button"
             onClick={previousMonth}
-            className="flex h-9 w-9 items-center text-4xl justify-center rounded-md hover:bg-white"
+            className="flex h-9 w-9 items-center justify-center rounded-md text-4xl leading-none hover:bg-white"
             aria-label="Previous month"
           >
             ←
@@ -194,7 +194,7 @@ function Calendar({
           <button
             type="button"
             onClick={nextMonth}
-            className="flex h-9 w-9 items-center text-4xl justify-center rounded-md hover:bg-white"
+            className="flex h-9 w-9 items-center justify-center rounded-md text-4xl leading-none hover:bg-white"
             aria-label="Next month"
           >
             →
@@ -203,11 +203,11 @@ function Calendar({
       </div>
 
       {/* Calendar */}
-      <div className="flex flex-col overflow-hidden rounded-lg w-fit">
+      <div className="flex h-full min-h-0 w-[84rem] max-w-full flex-col overflow-hidden rounded-lg">
         {/* Weekday header */}
         <div
-          className="grid shrink-0 bg-accent select-none "
-          style={{ gridTemplateColumns: "repeat(7, 12rem)" }}
+          className="grid shrink-0 bg-accent select-none"
+          style={{ gridTemplateColumns: "repeat(7, minmax(0, 1fr))" }}
         >
           {WEEKDAYS.map((day) => (
             <div
@@ -221,10 +221,10 @@ function Calendar({
 
         {/* Days */}
         <div
-          className="grid"
+          className="grid h-full min-h-0 flex-1"
           style={{
-            gridTemplateRows: `repeat(${weeks}, 8.4rem)`,
-            gridTemplateColumns: "repeat(7, 12rem)",
+            gridTemplateRows: `repeat(${weeks}, minmax(0, 1fr))`,
+            gridTemplateColumns: "repeat(7, minmax(0, 1fr))",
           }}
         >
           {days.map((date) => (
@@ -307,7 +307,7 @@ export default function App() {
 
       <div className="flex h-full min-h-0">
         {/* Main Calendar Section */}
-        <div className={`w-full h-full min-h-0 bg-primary p-4 transition-all`}>
+        <div className="w-3/4 h-full min-h-0 bg-primary p-4 transition-all">
           <Calendar
             value={selectedDate}
             onChange={setSelectedDate}
@@ -317,7 +317,7 @@ export default function App() {
 
         {/* Apple Calendar Events Panel */}
         {showCalendarPanel && (
-          <div className="w-1/2 h-full min-h-0 border-l border-black/10 bg-primary p-4 overflow-y-auto">
+          <div className="w-full h-full min-h-0 border-l border-black/10 bg-primary p-4 overflow-y-auto">
             <CalendarEvents
               events={todayEvents}
               isLoading={isLoading}
