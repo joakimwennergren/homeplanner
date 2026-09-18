@@ -1,47 +1,24 @@
-// @ts-nocheck
 import { useMemo, useState, useEffect } from "react";
 import "dayjs/locale/sv";
 import dayjs, { Dayjs } from "dayjs";
 import { useAppleCalendar } from "./hooks/useAppleCalendar";
-import { CalendarEvents } from "./components/calendar-events";
 import { capitalizeFirstLetter } from "./util/stringutils";
 
 dayjs.locale("sv");
 
-type Todo = {
-  time: string;
-  title: string;
-};
-
-const capitalMonth = (month: string) => {
-  return month.charAt(0).toUpperCase() + month.slice(1);
-};
-
 const WEEKDAYS = ["Mån", "Tis", "Ons", "Tor", "Fre", "Lör", "Sön"];
-
-function getTodoList(date: Dayjs): Todo[] {
-  return [];
-}
 
 function getCalendarDays(month: Dayjs): Dayjs[] {
   const startOfMonth = month.startOf("month");
   const endOfMonth = month.endOf("month");
-
-  // Dayjs: Sunday = 0, Monday = 1, etc.
-  // Convert to Monday-based index: Monday = 0, Sunday = 6.
   const startOffset = (startOfMonth.day() + 6) % 7;
-
   const daysInMonth = endOfMonth.date();
-
-  // Always show complete weeks.
   const totalDays = Math.ceil((startOffset + daysInMonth) / 7) * 7;
-
   const firstDay = startOfMonth.subtract(startOffset, "day");
 
   return Array.from({ length: totalDays }, (_, index) =>
     firstDay.add(index, "day"),
   );
-  n;
 }
 
 type CalendarDayProps = {
@@ -64,15 +41,11 @@ function CalendarDay({
   const isSelected = selectedDate?.isSame(date, "day");
   const isWeekend = date.day() === 0;
 
-  const todos = getTodoList(date);
-
-  // Filter Apple Calendar events for this day
   const dayEvents = events.filter(
     (event) =>
       dayjs(event.start).format("YYYY-MM-DD") === date.format("YYYY-MM-DD"),
   );
 
-  // Show max 4 events
   const displayedEvents = dayEvents.slice(0, 2);
   const moreCount = dayEvents.length - displayedEvents.length;
 
@@ -80,49 +53,40 @@ function CalendarDay({
     <button
       type="button"
       onClick={() => onSelect(date)}
-      className={`
-        relative min-h-0 min-w-0
-        border-r border-b border-gray-200
-        bg-primary p-2 text-left
-        transition-colors
-        bg-white
-        hover:bg-gray-50
-        focus:z-10 focus:outline-none
-        select-none
-        ${!isCurrentMonth ? "bg-gray-50 text-gray-300" : ""}
-        ${isSelected ? "ring-2 ring-inset ring-blue-500" : ""}
-      `}
+      className={[
+        "relative min-h-0 min-w-0 border-r border-b border-[#dfe5e2] p-2 text-left transition-colors",
+        "bg-[#fdfaf7] hover:bg-[#f4f7f6] focus:z-10 focus:outline-none select-none",
+        !isCurrentMonth ? "bg-[#f4f2ef] text-[#b6beb9]" : "",
+        isSelected ? "bg-[#eaf6f5] ring-1 ring-inset ring-[#4b9ea4]" : "",
+      ].join(" ")}
     >
       <div className="relative h-full w-full">
-        {/* Date number */}
         <div className="absolute left-0 top-0 z-10">
           <span
-            className={`
-              flex h-6 w-6 items-center justify-center
-              rounded-full text-lg
-              ${isToday ? "bg-secondary font-semibold text-white" : ""}
-              ${isSelected && !isToday ? "font-semibold text-blue-600" : ""}
-              ${isWeekend && !isToday ? "text-red-600" : ""}
-            `}
+            className={[
+              "flex h-7 w-7 items-center justify-center rounded-full text-[15px] font-medium",
+              isToday ? "bg-[#ffb000] text-white" : "",
+              isSelected && !isToday ? "font-semibold text-[#1f4c4f]" : "",
+              isWeekend && !isToday ? "text-[#e35c60]" : "",
+            ].join(" ")}
           >
             {date.date()}
           </span>
         </div>
 
-        {/* Apple Calendar Events Pills */}
         {displayedEvents.length > 0 && (
           <div className="flex flex-col gap-1 overflow-hidden pt-8">
             {displayedEvents.map((event) => (
               <div
                 key={event.id}
-                className="truncate rounded bg-accent px-2 py-0.5 text-lg text-white font-medium"
+                className="truncate rounded-md bg-[#2ca7a4] px-2 py-1 text-[16px] font-medium text-white shadow-sm"
                 title={event.title}
               >
                 {event.title}
               </div>
             ))}
             {moreCount > 0 && (
-              <div className="pb-2 text-xs text-gray-600">
+              <div className="pb-1 text-[11px] text-[#4d7d7c]">
                 +{moreCount} till
               </div>
             )}
@@ -143,83 +107,55 @@ function Calendar({
   events?: Array<{ id: string; title: string; start: Date }>;
 }) {
   const [currentMonth, setCurrentMonth] = useState(value.startOf("month"));
-
   const days = useMemo(() => getCalendarDays(currentMonth), [currentMonth]);
-
   const weeks = Math.ceil(days.length / 7);
 
-  const previousMonth = () => {
+  const previousMonth = () =>
     setCurrentMonth((month) => month.subtract(1, "month"));
-  };
-
-  const nextMonth = () => {
-    setCurrentMonth((month) => month.add(1, "month"));
-  };
-
-  const goToToday = () => {
-    const today = dayjs();
-
-    setCurrentMonth(today.startOf("month"));
-    onChange(today);
-  };
+  const nextMonth = () => setCurrentMonth((month) => month.add(1, "month"));
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      {/* Header */}
       <div className="flex shrink-0 items-center justify-between pb-4 select-none">
-        <div className="flex items-center gap-4">
-          <h1 className="text-2xl font-semibold">
-            {capitalizeFirstLetter(currentMonth.format("MMMM YYYY"))}
-          </h1>
+        <h1 className="text-[58px] font-black leading-none tracking-[-0.05em] text-[#1d2d2d]">
+          {capitalizeFirstLetter(currentMonth.format("MMMM YYYY"))}
+        </h1>
 
-          <button
-            type="button"
-            onClick={goToToday}
-            className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm"
-          >
-            Idag
-          </button>
-        </div>
-
-        <div className="flex h-10 items-center gap-3 self-center">
+        <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={previousMonth}
-            className="flex h-9 w-9 items-center justify-center rounded-md text-4xl leading-none hover:bg-white"
+            className="flex h-12 w-12 items-center justify-center rounded-xl border border-[#dfe3df] bg-[#f8f5f2] text-3xl text-[#2f3c3b] shadow-sm"
             aria-label="Previous month"
           >
-            ←
+            ‹
           </button>
-
           <button
             type="button"
             onClick={nextMonth}
-            className="flex h-9 w-9 items-center justify-center rounded-md text-4xl leading-none hover:bg-white"
+            className="flex h-12 w-12 items-center justify-center rounded-xl border border-[#dfe3df] bg-[#f8f5f2] text-3xl text-[#2f3c3b] shadow-sm"
             aria-label="Next month"
           >
-            →
+            ›
           </button>
         </div>
       </div>
 
-      {/* Calendar */}
-      <div className="flex h-full min-h-0 w-[84rem] max-w-full flex-col overflow-hidden rounded-lg">
-        {/* Weekday header */}
+      <div className="flex h-full min-h-0 w-full max-w-full flex-col overflow-hidden rounded-2xl bg-[#f5f5f2]">
         <div
-          className="grid shrink-0 bg-accent select-none"
+          className="grid shrink-0 bg-[#f7f4f1] select-none"
           style={{ gridTemplateColumns: "repeat(7, minmax(0, 1fr))" }}
         >
           {WEEKDAYS.map((day) => (
             <div
               key={day}
-              className="border-r border-b border-gray-200 px-3 py-1 text-center text-lg font-medium text-primary last:border-r-0"
+              className="border-r border-b border-[#dfe5e2] px-3 py-2 text-center text-[14px] font-semibold uppercase tracking-[0.16em] text-[#697876] last:border-r-0"
             >
               {day}
             </div>
           ))}
         </div>
 
-        {/* Days */}
         <div
           className="grid h-full min-h-0 flex-1"
           style={{
@@ -243,90 +179,242 @@ function Calendar({
   );
 }
 
+const mockStats = [
+  {
+    label: "Inomhustemperatur",
+    value: "21.4°C",
+    status: "Normal",
+    type: "temp",
+  },
+  { label: "Luftfuktighet", value: "42%", status: "Normal", type: "humidity" },
+  {
+    label: "Utomhusstemperatur",
+    value: "13°C",
+    status: "Delvis molnigt",
+    type: "outside",
+  },
+  {
+    label: "Energiförbrukning",
+    value: "18.6 kWh",
+    sub: "Idag",
+    type: "energy",
+  },
+];
+
+const upcomingEvents = [
+  { time: "19 sep 13:00", title: "Svampens dag green" },
+  { time: "20 sep 15:00", title: "Svampens dag på torget" },
+  { time: "22 sep 09:00", title: "Målning hall" },
+  { time: "29 sep 10:00", title: "Svalesmöte" },
+];
+
+function StatCard({ item }: { item: (typeof mockStats)[number] }) {
+  const icon =
+    item.type === "temp"
+      ? "◔"
+      : item.type === "humidity"
+        ? "◌"
+        : item.type === "outside"
+          ? "☼"
+          : "▤";
+
+  return (
+    <div className="rounded-2xl border border-[#e7e1db] bg-[#f9f7f5] p-4 shadow-sm">
+      <div className="mb-4 flex items-center justify-between">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#edf7f6] text-xl text-[#2e918d]">
+          {icon}
+        </div>
+        <div className="text-[11px] font-medium uppercase tracking-[0.12em] text-[#7a8a87]">
+          {item.type === "energy" ? "" : ""}
+        </div>
+      </div>
+
+      <div className="text-[14px] font-medium text-[#667978]">{item.label}</div>
+      <div className="mt-2 text-[28px] font-bold tracking-[-0.05em] text-[#1d2d2d]">
+        {item.value}
+      </div>
+      {item.sub ? (
+        <div className="mt-2 text-[12px] text-[#6d7f7a]">{item.sub}</div>
+      ) : (
+        <div className="mt-2 flex items-center gap-2 text-[12px] text-[#64726f]">
+          <span className="h-2 w-2 rounded-full bg-[#b7c0bc]" />
+          {item.status}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function App() {
   const [selectedDate, setSelectedDate] = useState<Dayjs>(dayjs());
-  const [showCalendarPanel, setShowCalendarPanel] = useState(true);
+  const [hasInitialSync, setHasInitialSync] = useState(false);
 
-  // Memoize the date range to prevent re-renders
   const dateRange = useMemo(
     () => ({
       startDate: dayjs().startOf("month").toDate(),
       endDate: dayjs().add(3, "months").endOf("month").toDate(),
     }),
-    [], // Only compute once on mount
+    [],
   );
 
-  const { events, isLoading, error, isConfigured, configure, sync } =
+  const { events, isLoading, isConfigured, lastSyncTime, configure, sync } =
     useAppleCalendar({
       startDate: dateRange.startDate,
       endDate: dateRange.endDate,
-      autoSync: false, // Disabled auto-sync to prevent loops
-      syncInterval: 10 * 60 * 1000, // Sync every 10 minutes
+      autoSync: true,
+      syncInterval: 10 * 60 * 1000,
     });
 
-  // Auto-configure with your calendar URL on mount
   useEffect(() => {
     if (!isConfigured) {
-      // Convert webcal:// to https://
       const caldavUrl =
         "https://p175-caldav.icloud.com/published/2/NTU0NjA0NTc4NTU0NjA0Nccf8d7_mvqEcSGzxpbr7EV08Iuld-5uOEZgHXUHRqKIWwEvQORwx_pOdzEO8Yt_rvGqrKnRQ5uD5WvC5ww9IBo";
-      // Use empty credentials for published calendars
       configure(caldavUrl, "", "");
+      return;
     }
-  }, [isConfigured, configure]);
 
-  // Filter events to only show events for the selected date
-  const todayEvents = useMemo(() => {
-    if (!selectedDate) return [];
-    return events.filter((event) => {
-      const eventDate = dayjs(event.start).format("YYYY-MM-DD");
-      const selectedDateStr = selectedDate.format("YYYY-MM-DD");
-      return eventDate === selectedDateStr;
-    });
-  }, [events, selectedDate]);
+    if (hasInitialSync) return;
+
+    setHasInitialSync(true);
+    void sync();
+  }, [isConfigured, configure, sync, hasInitialSync]);
+
+  const headerDate = `${dayjs(selectedDate).format("D")} ${capitalizeFirstLetter(dayjs(selectedDate).format("MMMM"))}`;
+  const formattedLastSync = lastSyncTime
+    ? dayjs(lastSyncTime).format("HH:mm")
+    : "--:--";
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden flex-col bg-primary">
-      {/* Top Navigation */}
-      <div className="border-b border-orange-100 px-4 py-3 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">
-          Drömhem 2.0 <span className="text-red-500">❤️</span>
-        </h1>
-        <div className="flex items-center gap-4">
-          {isConfigured && (
-            <button
-              onClick={sync}
-              disabled={isLoading}
-              className="px-3 py-1.5 text-lg bg-accent text-white rounded transition-colors"
-            >
-              {isLoading ? "Synkar..." : "Synka kalender"}
-            </button>
-          )}
-        </div>
-      </div>
-
-      <div className="flex h-full min-h-0">
-        {/* Main Calendar Section */}
-        <div className="w-3/4 h-full min-h-0 bg-primary p-4 transition-all">
-          <Calendar
-            value={selectedDate}
-            onChange={setSelectedDate}
-            events={events}
-          />
-        </div>
-
-        {/* Apple Calendar Events Panel */}
-        {showCalendarPanel && (
-          <div className="w-full h-full min-h-0 border-l border-black/10 bg-primary p-4 overflow-y-auto">
-            <CalendarEvents
-              events={todayEvents}
-              isLoading={isLoading}
-              error={error}
-              selectedDate={selectedDate.toDate()}
-            />
+    <div className="min-h-screen bg-[#f5f1ed] text-[#1c2d2d]">
+      <header className="flex items-center justify-between border-b border-[#e3ddd7] bg-[#f5f1ed] px-5 py-4">
+        <div className="flex items-center gap-3 pl-4">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#f4f3f0] text-xl text-[#1d2d2d] shadow-sm">
+            🏠
           </div>
-        )}
-      </div>
+          <div className="flex items-center gap-2 text-[20px] font-bold tracking-[-0.04em]">
+            <span>Drömhem 2.0</span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-5 text-[14px] text-[#465d5c]">
+          <div className="flex items-center gap-2 font-medium">
+            <span className="inline-block h-4 w-4 rounded-full border border-[#4a6767]" />
+            <span>Synk:</span>
+            <span className="font-semibold text-[#1d2d2d]">
+              {formattedLastSync}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2 text-[#2d4f4c]">
+            <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-[#a7b7b3] text-[10px]">
+              ↻
+            </span>
+            <span>Allt uppdaterat</span>
+          </div>
+
+          <button
+            type="button"
+            className="rounded-xl border border-[#dfe6e2] bg-[#f8f5f2] px-4 py-2 font-medium text-[#2a3e3d] shadow-sm"
+          >
+            Inställningar
+          </button>
+        </div>
+      </header>
+
+      <main className="flex min-h-[calc(100vh-77px)] gap-6 p-5">
+        <section className="flex-1 rounded-3xl bg-[#f5f1ed] p-4">
+          {isLoading && events.length === 0 ? (
+            <div className="flex h-full min-h-[620px] items-center justify-center">
+              <div className="flex items-center gap-3 rounded-full border border-[#dfe5e2] bg-white/75 px-5 py-3 shadow-sm backdrop-blur-sm">
+                <span className="h-5 w-5 animate-spin rounded-full border-2 border-[#bfdbd7] border-t-[#2da9a3]" />
+                <span className="text-sm font-medium text-[#355b5a]">
+                  Synkar kalender…
+                </span>
+              </div>
+            </div>
+          ) : (
+            <Calendar
+              value={selectedDate}
+              onChange={setSelectedDate}
+              events={events}
+            />
+          )}
+        </section>
+
+        <aside className="w-[390px] shrink-0 rounded-3xl bg-[#f5f1ed] p-1">
+          <div className="space-y-4">
+            <div className="rounded-2xl border border-[#dfe4e1] bg-[#f6f7f5] p-4 shadow-sm">
+              <div className="mb-3 flex items-center justify-between">
+                <h2 className="text-[18px] font-semibold text-[#1d2d2d]">
+                  Idag
+                </h2>
+                <span className="text-[14px] text-[#75817d]">{headerDate}</span>
+              </div>
+
+              <div className="flex items-center justify-between rounded-2xl border border-[#cfe2e0] bg-[#dff1ef] px-4 py-3">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#cfe8e6] text-lg text-[#1f6864]">
+                    🕒
+                  </span>
+                  <div>
+                    <div className="text-[17px] font-semibold text-[#1d2d2d]">
+                      Emji kolla lägenhet
+                    </div>
+                    <div className="text-[13px] text-[#3f6c6a]">
+                      11:00 – 12:00
+                    </div>
+                  </div>
+                </div>
+                <span className="text-xl text-[#1d2d2d]">›</span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              {mockStats.map((item) => (
+                <StatCard key={item.label} item={item} />
+              ))}
+            </div>
+
+            <div className="rounded-2xl border border-[#dfe4e1] bg-[#f6f7f5] p-4 shadow-sm">
+              <div className="mb-3 flex items-center justify-between">
+                <h3 className="text-[18px] font-semibold text-[#1d2d2d]">
+                  Nästa
+                </h3>
+                <button
+                  type="button"
+                  className="text-sm font-medium text-[#506a69]"
+                >
+                  Se alla ›
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                {upcomingEvents.map((item) => (
+                  <div
+                    key={item.time}
+                    className="flex items-center justify-between gap-3 border-b border-[#e7e1db] pb-2 last:border-b-0 last:pb-0"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#eef3f1] text-[#2e8c88]">
+                        🗓
+                      </div>
+                      <div>
+                        <div className="text-[12px] text-[#5e7a78]">
+                          {item.time}
+                        </div>
+                        <div className="text-[14px] font-medium text-[#1d2d2d]">
+                          {item.title}
+                        </div>
+                      </div>
+                    </div>
+                    <span className="text-[12px] text-[#6a7d7c]">›</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </aside>
+      </main>
     </div>
   );
 }

@@ -21,6 +21,7 @@ export function useAppleCalendar(options: UseAppleCalendarOptions = {}) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isConfigured, setIsConfigured] = useState(false);
+  const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
   const configuredRef = useRef(false);
 
   /**
@@ -57,6 +58,7 @@ export function useAppleCalendar(options: UseAppleCalendarOptions = {}) {
         end || endDate
       );
       setEvents(fetchedEvents);
+      setLastSyncTime(new Date());
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch calendar events';
       setError(errorMessage);
@@ -81,6 +83,7 @@ export function useAppleCalendar(options: UseAppleCalendarOptions = {}) {
     try {
       const fetchedEvents = await appleCalendarService.fetchEvents(startDate, endDate);
       setEvents(fetchedEvents);
+      setLastSyncTime(new Date());
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch calendar events';
       setError(errorMessage);
@@ -110,6 +113,7 @@ export function useAppleCalendar(options: UseAppleCalendarOptions = {}) {
     isLoading,
     error,
     isConfigured,
+    lastSyncTime,
     configure,
     sync,
     fetchEvents,
