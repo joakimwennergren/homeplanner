@@ -63,7 +63,7 @@ export function CalendarEvents({
                   {event.title}
                 </h4>
 
-                <div className="mt-1 flex items-center gap-2 text-lg text-gray-600">
+                <div className="mt-1 flex items-center gap-2 text-sm text-gray-600">
                   <span>
                     {event.isAllDay
                       ? "Hela dagen"
@@ -72,13 +72,13 @@ export function CalendarEvents({
                 </div>
 
                 {event.location && (
-                  <p className="mt-2 max-w-full break-all text-lg text-gray-600 whitespace-pre-wrap">
+                  <p className="mt-2 max-w-full break-all text-sm text-gray-600 whitespace-pre-wrap">
                     <span className="font-medium">Plats:</span> {event.location}
                   </p>
                 )}
 
                 {event.description && (
-                  <p className="mt-2 max-w-full break-all overflow-hidden text-lg text-gray-600 whitespace-pre-wrap">
+                  <p className="mt-2 max-w-full break-all overflow-hidden text-sm text-gray-600 whitespace-pre-wrap">
                     {event.description}
                   </p>
                 )}
