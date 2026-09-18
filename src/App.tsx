@@ -98,8 +98,8 @@ function CalendarDay({
         <div className="absolute left-0 top-0 z-10">
           <span
             className={`
-              flex h-6 w-6 items-center justify-center
-              rounded-full text-md
+              flex h-6 w-6 items-center justify-centerdr
+              rounded-full text-xl
               ${isToday ? "bg-secondary font-semibold text-white" : ""}
               ${isSelected && !isToday ? "font-semibold text-blue-600" : ""}
               ${isWeekend && !isToday ? "text-red-600" : ""}
@@ -115,7 +115,7 @@ function CalendarDay({
             {displayedEvents.map((event) => (
               <div
                 key={event.id}
-                className="truncate rounded bg-accent px-2 py-0.5 text-md text-white font-medium"
+                className="truncate rounded bg-accent px-2 py-0.5 text-xl text-white font-medium"
                 title={event.title}
               >
                 {event.title}
@@ -289,7 +289,7 @@ export default function App() {
     <div className="flex h-screen w-screen overflow-hidden flex-col bg-primary">
       {/* Top Navigation */}
       <div className="border-b border-orange-100 px-4 py-3 flex items-center justify-between">
-        <h1 className="text-lg font-semibold">
+        <h1 className="text-4xl font-semibold">
           Drömhem 2.0 <span className="text-red-500">❤️</span>
         </h1>
         <div className="flex items-center gap-4">
