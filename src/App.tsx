@@ -3,8 +3,8 @@ import { useMemo, useState, useEffect } from "react";
 import "dayjs/locale/sv";
 import dayjs, { Dayjs } from "dayjs";
 import { useAppleCalendar } from "./hooks/useAppleCalendar";
-import { CalendarConfig } from "./components/calendar-config";
 import { CalendarEvents } from "./components/calendar-events";
+import { capitalizeFirstLetter } from "./util/stringutils";
 
 dayjs.locale("sv");
 
@@ -15,7 +15,7 @@ type Todo = {
 
 const capitalMonth = (month: string) => {
   return month.charAt(0).toUpperCase() + month.slice(1);
-}
+};
 
 const WEEKDAYS = ["Mån", "Tis", "Ons", "Tor", "Fre", "Lör", "Sön"];
 
@@ -40,7 +40,8 @@ function getCalendarDays(month: Dayjs): Dayjs[] {
 
   return Array.from({ length: totalDays }, (_, index) =>
     firstDay.add(index, "day"),
-  );n
+  );
+  n;
 }
 
 type CalendarDayProps = {
@@ -92,38 +93,42 @@ function CalendarDay({
         ${isSelected ? "ring-2 ring-inset ring-blue-500" : ""}
       `}
     >
-      {/* Date number */}
-      <div className="flex items-center absolute top-1">
-        <span
-          className={`
-            flex h-8 w-8 items-center justify-center
-            rounded-full text-lg
-            ${isToday ? "bg-black font-semibold text-white" : ""}
-            ${isSelected && !isToday ? "font-semibold text-blue-600" : ""}
-            ${isWeekend && !isToday ? "text-red-600" : ""}
-          `}
-        >
-          {date.date()}
-        </span>
-      </div>
-
-      {/* Apple Calendar Events Pills */}
-      {displayedEvents.length > 0 && (
-        <div className="mt-6 space-y-1 overflow-hidden">
-          {displayedEvents.map((event) => (
-            <div
-              key={event.id}
-              className="truncate rounded bg-accent px-2 py-0.5 text-white text-lg"
-              title={event.title}
-            >
-              {event.title}
-            </div>
-          ))}
-          {moreCount > 0 && (
-            <div className="text-xs text-gray-600 pb-2">+{moreCount} till</div>
-          )}
+      <div className="relative h-full w-full">
+        {/* Date number */}
+        <div className="absolute left-0 top-0 z-10">
+          <span
+            className={`
+              flex h-6 w-6 items-center justify-center
+              rounded-full text-md
+              ${isToday ? "bg-secondary font-semibold text-white" : ""}
+              ${isSelected && !isToday ? "font-semibold text-blue-600" : ""}
+              ${isWeekend && !isToday ? "text-red-600" : ""}
+            `}
+          >
+            {date.date()}
+          </span>
         </div>
-      )}
+
+        {/* Apple Calendar Events Pills */}
+        {displayedEvents.length > 0 && (
+          <div className="flex flex-col gap-1 overflow-hidden pt-8">
+            {displayedEvents.map((event) => (
+              <div
+                key={event.id}
+                className="truncate rounded bg-accent px-2 py-0.5 text-md text-white font-medium"
+                title={event.title}
+              >
+                {event.title}
+              </div>
+            ))}
+            {moreCount > 0 && (
+              <div className="pb-2 text-xs text-gray-600">
+                +{moreCount} till
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </button>
   );
 }
@@ -157,14 +162,14 @@ function Calendar({
     setCurrentMonth(today.startOf("month"));
     onChange(today);
   };
-  
+
   return (
     <div className="flex h-full min-h-0 flex-col">
       {/* Header */}
       <div className="flex shrink-0 items-center justify-between pb-4 select-none">
         <div className="flex items-center gap-4">
           <h1 className="text-2xl font-semibold">
-            {capitalMonth(currentMonth.format("MMMM YYYY"))}
+            {capitalizeFirstLetter(currentMonth.format("MMMM YYYY"))}
           </h1>
 
           <button
@@ -180,7 +185,7 @@ function Calendar({
           <button
             type="button"
             onClick={previousMonth}
-            className="flex h-9 w-9 items-center text-4xl justify-center rounded-md"
+            className="flex h-9 w-9 items-center text-4xl justify-center rounded-md hover:bg-white"
             aria-label="Previous month"
           >
             ←
@@ -189,7 +194,7 @@ function Calendar({
           <button
             type="button"
             onClick={nextMonth}
-            className="flex h-9 w-9 items-center text-4xl justify-center rounded-md"
+            className="flex h-9 w-9 items-center text-4xl justify-center rounded-md hover:bg-white"
             aria-label="Next month"
           >
             →
@@ -233,40 +238,6 @@ function Calendar({
             />
           ))}
         </div>
-      </div>
-    </div>
-  );
-}
-
-function TodoList({ date }: { date: Dayjs | null }) {
-  if (!date) {
-    return <div className="p-6 text-gray-400">Select a date</div>;
-  }
-
-  const todos = getTodoList(date);
-
-  return (
-    <div className="flex h-full flex-col">
-      <div className="shrink-0 border-b border-gray-200 p-6 select-none">
-        <div className="text-sm text-gray-500">{date.format("dddd")}</div>
-
-        <div className="mt-1 text-2xl font-semibold">
-          {date.format("MMMM D")}
-        </div>
-      </div>
-
-      <div className="min-h-0 flex-1 overflow-y-auto select-none">
-        {todos.length === 0 ? (
-          <div className="p-6 text-gray-400">Inga händelser idag</div>
-        ) : (
-          todos.map((todo, index) => (
-            <div key={index} className="border-b border-gray-200 p-5">
-              <div className="text-sm text-gray-500">{todo.time}</div>
-
-              <div className="mt-1 font-medium">{todo.title}</div>
-            </div>
-          ))
-        )}
       </div>
     </div>
   );
@@ -317,8 +288,10 @@ export default function App() {
   return (
     <div className="flex h-screen w-screen overflow-hidden flex-col bg-primary">
       {/* Top Navigation */}
-      <div className="border-b border-black/10 px-4 py-3 flex items-center justify-between">
-        <h1 className="text-4xl font-semibold">Drömhuset 2.0 <span style={{color: "darkred"}}>❤</span>️</h1>
+      <div className="border-b border-orange-100 px-4 py-3 flex items-center justify-between">
+        <h1 className="text-lg font-semibold">
+          Drömhem 2.0 <span className="text-red-500">❤️</span>
+        </h1>
         <div className="flex items-center gap-4">
           {isConfigured && (
             <button
