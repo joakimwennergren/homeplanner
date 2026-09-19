@@ -208,6 +208,78 @@ const upcomingEvents = [
   { time: "29 sep 10:00", title: "Svalesmöte" },
 ];
 
+function HomeIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+      className={className}
+    >
+      <path
+        d="M4 10.5 12 4l8 6.5V18a1.5 1.5 0 0 1-1.5 1.5h-3.75A1.75 1.75 0 0 1 12.99 18v-4.25h-1.98V18a1.75 1.75 0 0 1-1.76 1.75H5.5A1.5 1.5 0 0 1 4 18v-7.5Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M9 19.5V13h6v6.5"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function SyncIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+      className={className}
+    >
+      <path
+        d="M20 12a8 8 0 0 1-13.66 5.66M4 12a8 8 0 0 1 13.66-5.66"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M4 4v5h5M20 20v-5h-5"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function UpdatedIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+      className={className}
+    >
+      <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="1.8" />
+      <path
+        d="m8.5 12.2 2.2 2.2 4.8-5"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function StatCard({ item }: { item: (typeof mockStats)[number] }) {
   const icon =
     item.type === "temp"
@@ -221,7 +293,7 @@ function StatCard({ item }: { item: (typeof mockStats)[number] }) {
   return (
     <div className="rounded-2xl border border-[#e7e1db] bg-[#f9f7f5] p-4 shadow-sm">
       <div className="mb-4 flex items-center justify-between">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#edf7f6] text-xl text-[#2e918d]">
+        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#edf7f6] text-[28px] text-[#2e918d]">
           {icon}
         </div>
         <div className="text-[11px] font-medium uppercase tracking-[0.12em] text-[#7a8a87]">
@@ -288,8 +360,8 @@ export default function App() {
     <div className="min-h-screen bg-[#f5f1ed] text-[#1c2d2d]">
       <header className="flex items-center justify-between border-b border-[#e3ddd7] bg-[#f5f1ed] px-5 py-4">
         <div className="flex items-center gap-3 pl-4">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#f4f3f0] text-xl text-[#1d2d2d] shadow-sm">
-            🏠
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#f4f3f0] text-[#1d2d2d] shadow-sm">
+            <HomeIcon className="h-5 w-5" />
           </div>
           <div className="flex items-center gap-2 text-[20px] font-bold tracking-[-0.04em]">
             <span>Drömhem 2.0</span>
@@ -298,7 +370,7 @@ export default function App() {
 
         <div className="flex items-center gap-5 text-[14px] text-[#465d5c]">
           <div className="flex items-center gap-2 font-medium">
-            <span className="inline-block h-4 w-4 rounded-full border border-[#4a6767]" />
+            <SyncIcon className="h-4 w-4 text-[#405d5d]" />
             <span>Synk:</span>
             <span className="font-semibold text-[#1d2d2d]">
               {formattedLastSync}
@@ -306,8 +378,8 @@ export default function App() {
           </div>
 
           <div className="flex items-center gap-2 text-[#2d4f4c]">
-            <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-[#a7b7b3] text-[10px]">
-              ↻
+            <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-[#a7b7b3] bg-[#eef5f2] text-[#2b746d]">
+              <UpdatedIcon className="h-3.5 w-3.5" />
             </span>
             <span>Allt uppdaterat</span>
           </div>
