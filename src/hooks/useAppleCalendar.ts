@@ -25,6 +25,10 @@ export function useAppleCalendar(options: UseAppleCalendarOptions = {}) {
   const configuredRef = useRef(false);
   const lastSyncTsRef = useRef<number | null>(null);
 
+  useEffect(() => {
+    configuredRef.current = isConfigured;
+  }, [isConfigured]);
+
   /**
    * Configure the service with Apple Calendar credentials
    */
@@ -100,7 +104,7 @@ export function useAppleCalendar(options: UseAppleCalendarOptions = {}) {
 
   // Auto-sync setup (if enabled)
   useEffect(() => {
-    if (!autoSync || !configuredRef.current) return;
+    if (!autoSync || !isConfigured) return;
 
     const syncIfDue = () => {
       const now = Date.now();
@@ -114,7 +118,7 @@ export function useAppleCalendar(options: UseAppleCalendarOptions = {}) {
     // Fetch immediately on startup and whenever the kiosk/browser becomes active again.
     void fetchEvents();
 
-    const interval = setInterval(() => {
+    const interval = window.setInterval(() => {
       syncIfDue();
     }, syncInterval);
 
@@ -133,12 +137,12 @@ export function useAppleCalendar(options: UseAppleCalendarOptions = {}) {
     window.addEventListener('pageshow', onFocus);
 
     return () => {
-      clearInterval(interval);
+      window.clearInterval(interval);
       document.removeEventListener('visibilitychange', onVisible);
       window.removeEventListener('focus', onFocus);
       window.removeEventListener('pageshow', onFocus);
     };
-  }, [autoSync, fetchEvents, syncInterval]);
+  }, [autoSync, isConfigured, fetchEvents, syncInterval]);
 
   return {
     events,
