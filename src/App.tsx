@@ -179,34 +179,71 @@ function Calendar({
   );
 }
 
-const mockStats = [
+type StatItem = {
+  label: string;
+  value: string;
+  status?: string;
+  sub?: string;
+  type: string;
+};
+
+const baseStats: StatItem[] = [
   {
     label: "Inomhustemperatur",
-    value: "21.4°C",
+    value: "--°C",
     status: "Normal",
     type: "temp",
   },
-  { label: "Luftfuktighet", value: "42%", status: "Normal", type: "humidity" },
+  { label: "Luftfuktighet", value: "0%", status: "Normal", type: "humidity" },
   {
-    label: "Utomhusstemperatur",
-    value: "13°C",
-    status: "Delvis molnigt",
+    label: "Utomhustemperatur",
+    value: "--°C",
+    status: "Laddar...",
     type: "outside",
   },
   {
     label: "Energiförbrukning",
-    value: "18.6 kWh",
+    value: "-- kWh",
     sub: "Idag",
     type: "energy",
   },
 ];
 
-const upcomingEvents = [
-  { time: "19 sep 13:00", title: "Svampens dag green" },
-  { time: "20 sep 15:00", title: "Svampens dag på torget" },
-  { time: "22 sep 09:00", title: "Målning hall" },
-  { time: "29 sep 10:00", title: "Svalesmöte" },
-];
+function getWeatherSummary(weatherCode?: number) {
+  if (weatherCode === undefined) return "Uppdaterar...";
+
+  const codes: Record<number, string> = {
+    0: "Klar himmel",
+    1: "Mest klart",
+    2: "Delvis molnigt",
+    3: "Molnigt",
+    45: "Dimma",
+    48: "Dimma",
+    51: "Lätt duggregn",
+    53: "Duggregn",
+    55: "Duggregn",
+    56: "Kallt duggregn",
+    57: "Kallt duggregn",
+    61: "Lätt regn",
+    63: "Regn",
+    65: "Kraftigt regn",
+    66: "Lätt snöblandat regn",
+    67: "Snöblandat regn",
+    71: "Lätt snöfall",
+    73: "Snöfall",
+    75: "Kraftigt snöfall",
+    80: "Regnskurar",
+    81: "Regnskurar",
+    82: "Kraftiga regnskurar",
+    85: "Lätta snöbyar",
+    86: "Kraftiga snöbyar",
+    95: "Åska",
+    96: "Åska",
+    99: "Kraftig åska",
+  };
+
+  return codes[weatherCode] ?? "Väderuppdatering";
+}
 
 function HomeIcon({ className = "" }: { className?: string }) {
   return (
@@ -313,7 +350,7 @@ function EventIcon({ className = "" }: { className?: string }) {
   );
 }
 
-function StatCard({ item }: { item: (typeof mockStats)[number] }) {
+function StatCard({ item }: { item: StatItem }) {
   const icon =
     item.type === "temp"
       ? "◔"
@@ -353,6 +390,9 @@ function StatCard({ item }: { item: (typeof mockStats)[number] }) {
 export default function App() {
   const [selectedDate, setSelectedDate] = useState<Dayjs>(dayjs());
   const [hasInitialSync, setHasInitialSync] = useState(false);
+  const [isDayModalOpen, setIsDayModalOpen] = useState(false);
+  const [outsideTemp, setOutsideTemp] = useState("--°C");
+  const [outsideStatus, setOutsideStatus] = useState("Laddar...");
 
   const dateRange = useMemo(
     () => ({
@@ -387,6 +427,105 @@ export default function App() {
   const formattedLastSync = lastSyncTime
     ? dayjs(lastSyncTime).format("HH:mm")
     : "--:--";
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    const fetchOutsideTemperature = async () => {
+      try {
+        const geoResponse = await fetch(
+          "https://geocoding-api.open-meteo.com/v1/search?name=Sjuntorp&count=1&language=sv&format=json",
+          { signal: controller.signal },
+        );
+
+        if (!geoResponse.ok) {
+          throw new Error("Failed to resolve Sjuntorp coordinates");
+        }
+
+        const geoData = await geoResponse.json();
+        const location = geoData.results?.[0];
+
+        if (!location) {
+          throw new Error("Sjuntorp not found");
+        }
+
+        const weatherResponse = await fetch(
+          `https://api.open-meteo.com/v1/forecast?latitude=${location.latitude}&longitude=${location.longitude}&current=temperature_2m,weather_code&timezone=auto`,
+          { signal: controller.signal },
+        );
+
+        if (!weatherResponse.ok) {
+          throw new Error("Failed to fetch weather data");
+        }
+
+        const weatherData = await weatherResponse.json();
+        const temperature = weatherData.current?.temperature_2m;
+        const weatherCode = weatherData.current?.weather_code;
+
+        if (controller.signal.aborted) return;
+
+        setOutsideTemp(
+          typeof temperature === "number"
+            ? `${temperature.toFixed(1)}°C`
+            : "--°C",
+        );
+        setOutsideStatus(getWeatherSummary(weatherCode));
+      } catch (error) {
+        if (controller.signal.aborted) return;
+
+        console.error("Outdoor temperature fetch failed:", error);
+        setOutsideTemp("--°C");
+        setOutsideStatus("Ej tillgängligt");
+      }
+    };
+
+    void fetchOutsideTemperature();
+
+    return () => {
+      controller.abort();
+    };
+  }, [lastSyncTime]);
+
+  const stats = useMemo<StatItem[]>(
+    () =>
+      baseStats.map((item) =>
+        item.type === "outside"
+          ? { ...item, value: outsideTemp, status: outsideStatus }
+          : item,
+      ),
+    [outsideStatus, outsideTemp],
+  );
+
+  const upcomingEvents = useMemo(
+    () =>
+      [...events]
+        .filter((event) => dayjs(event.end).isAfter(dayjs()))
+        .sort((a, b) => dayjs(a.start).valueOf() - dayjs(b.start).valueOf())
+        .slice(0, 4)
+        .map((event) => ({
+          time: event.isAllDay
+            ? dayjs(event.start).format("D MMM")
+            : dayjs(event.start).format("D MMM HH:mm"),
+          title: event.title,
+        })),
+    [events],
+  );
+
+  const selectedDayEvents = useMemo(() => {
+    if (!selectedDate) return [];
+
+    return [...events]
+      .filter((event) => {
+        const eventDate = dayjs(event.start).format("YYYY-MM-DD");
+        return eventDate === selectedDate.format("YYYY-MM-DD");
+      })
+      .sort((a, b) => dayjs(a.start).valueOf() - dayjs(b.start).valueOf());
+  }, [events, selectedDate]);
+
+  const openDateModal = (date: Dayjs) => {
+    setSelectedDate(date);
+    setIsDayModalOpen(true);
+  };
 
   return (
     <div className="min-h-screen bg-[#f5f1ed] text-[#1c2d2d]">
@@ -439,7 +578,7 @@ export default function App() {
           ) : (
             <Calendar
               value={selectedDate}
-              onChange={setSelectedDate}
+              onChange={openDateModal}
               events={events}
             />
           )}
@@ -448,7 +587,7 @@ export default function App() {
         <aside className="w-[390px] shrink-0 rounded-3xl bg-[#f5f1ed] p-1">
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              {mockStats.map((item) => (
+              {stats.map((item) => (
                 <StatCard key={item.label} item={item} />
               ))}
             </div>
@@ -467,32 +606,111 @@ export default function App() {
               </div>
 
               <div className="space-y-3">
-                {upcomingEvents.map((item) => (
-                  <div
-                    key={item.time}
-                    className="flex items-center justify-between gap-3 border-b border-[#e7e1db] pb-2 last:border-b-0 last:pb-0"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#eef3f1] text-[#2e8c88]">
-                        <EventIcon className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <div className="text-[14px] text-[#5e7a78]">
-                          {item.time}
-                        </div>
-                        <div className="text-[16px] font-medium text-[#1d2d2d]">
-                          {item.title}
-                        </div>
-                      </div>
-                    </div>
-                    <span className="text-[12px] text-[#6a7d7c]">›</span>
+                {upcomingEvents.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-[#d5ddd8] bg-[#f8f6f3] p-3 text-sm text-[#5a6d6b]">
+                    Inga kommande händelser.
                   </div>
-                ))}
+                ) : (
+                  upcomingEvents.map((item) => (
+                    <div
+                      key={`${item.time}-${item.title}`}
+                      className="flex items-center justify-between gap-3 border-b border-[#e7e1db] pb-2 last:border-b-0 last:pb-0"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#eef3f1] text-[#2e8c88]">
+                          <EventIcon className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <div className="text-[14px] text-[#5e7a78]">
+                            {item.time}
+                          </div>
+                          <div className="text-[16px] font-medium text-[#1d2d2d]">
+                            {item.title}
+                          </div>
+                        </div>
+                      </div>
+                      <span className="text-[12px] text-[#6a7d7c]">›</span>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           </div>
         </aside>
       </main>
+
+      {isDayModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#1d2d2d]/35 p-4">
+          <div className="w-full max-w-2xl rounded-[28px] border border-[#dfe4e1] bg-[#fffaf5] p-6 shadow-2xl">
+            <div className="mb-5 flex items-start justify-between gap-4">
+              <div>
+                <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#6a7b79]">
+                  Händelser
+                </p>
+                <h3 className="mt-1 text-[32px] font-bold tracking-[-0.05em] text-[#1d2d2d]">
+                  {capitalizeFirstLetter(
+                    dayjs(selectedDate).format("D MMMM YYYY"),
+                  )}
+                </h3>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsDayModalOpen(false)}
+                className="flex h-11 w-11 items-center justify-center rounded-full border border-[#dfe4e1] bg-white text-2xl text-[#324847] shadow-sm"
+                aria-label="Stäng modal"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="max-h-[65vh] space-y-3 overflow-y-auto pr-1">
+              {selectedDayEvents.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-[#d5ddd8] bg-[#f8f6f3] p-5 text-center text-[#5a6d6b]">
+                  Inga händelser den här dagen.
+                </div>
+              ) : (
+                selectedDayEvents.map((event) => (
+                  <div
+                    key={event.id}
+                    className="rounded-2xl border border-[#e7e2dc] bg-[#f8f7f5] p-4 shadow-sm"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <h4 className="text-[20px] font-semibold text-[#1d2d2d]">
+                          {event.title}
+                        </h4>
+                        <p className="mt-2 text-[14px] text-[#4f6664]">
+                          {event.isAllDay
+                            ? "Hela dagen"
+                            : `${dayjs(event.start).format("HH:mm")} - ${dayjs(event.end).format("HH:mm")}`}
+                        </p>
+                      </div>
+
+                      <span className="rounded-full bg-[#dff1ef] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.1em] text-[#1f6d68]">
+                        {event.isAllDay ? "Heldag" : "Tid"}
+                      </span>
+                    </div>
+
+                    {event.location && (
+                      <p className="mt-3 text-[14px] text-[#4d6565]">
+                        <span className="font-medium">Plats:</span>{" "}
+                        {event.location}
+                      </p>
+                    )}
+
+                    {event.description && (
+                      <p className="mt-3 whitespace-pre-wrap text-[14px] leading-6 text-[#4d6565]">
+                        {event.description}
+                      </p>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
