@@ -23,6 +23,7 @@ export function useAppleCalendar(options: UseAppleCalendarOptions = {}) {
   const [isConfigured, setIsConfigured] = useState(false);
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
   const configuredRef = useRef(false);
+  const lastSyncTsRef = useRef<number | null>(null);
 
   /**
    * Configure the service with Apple Calendar credentials
@@ -58,7 +59,9 @@ export function useAppleCalendar(options: UseAppleCalendarOptions = {}) {
         end || endDate
       );
       setEvents(fetchedEvents);
-      setLastSyncTime(new Date());
+      const now = new Date();
+      setLastSyncTime(now);
+      lastSyncTsRef.current = now.getTime();
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch calendar events';
       setError(errorMessage);
@@ -83,7 +86,9 @@ export function useAppleCalendar(options: UseAppleCalendarOptions = {}) {
     try {
       const fetchedEvents = await appleCalendarService.fetchEvents(startDate, endDate);
       setEvents(fetchedEvents);
-      setLastSyncTime(new Date());
+      const now = new Date();
+      setLastSyncTime(now);
+      lastSyncTsRef.current = now.getTime();
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch calendar events';
       setError(errorMessage);
@@ -97,16 +102,43 @@ export function useAppleCalendar(options: UseAppleCalendarOptions = {}) {
   useEffect(() => {
     if (!autoSync || !configuredRef.current) return;
 
-    // Fetch immediately
-    fetchEvents();
+    const syncIfDue = () => {
+      const now = Date.now();
+      if (lastSyncTsRef.current && now - lastSyncTsRef.current < syncInterval) {
+        return;
+      }
 
-    // Setup periodic sync
+      void fetchEvents();
+    };
+
+    // Fetch immediately on startup and whenever the kiosk/browser becomes active again.
+    void fetchEvents();
+
     const interval = setInterval(() => {
-      fetchEvents();
+      syncIfDue();
     }, syncInterval);
 
-    return () => clearInterval(interval);
-  }, [autoSync, syncInterval]);
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') {
+        syncIfDue();
+      }
+    };
+
+    const onFocus = () => {
+      syncIfDue();
+    };
+
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('focus', onFocus);
+    window.addEventListener('pageshow', onFocus);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('focus', onFocus);
+      window.removeEventListener('pageshow', onFocus);
+    };
+  }, [autoSync, fetchEvents, syncInterval]);
 
   return {
     events,
