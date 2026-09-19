@@ -24,6 +24,8 @@ export function useAppleCalendar(options: UseAppleCalendarOptions = {}) {
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
   const configuredRef = useRef(false);
   const lastSyncTsRef = useRef<number | null>(null);
+  const timerRef = useRef<number | null>(null);
+  const isFetchingRef = useRef(false);
 
   useEffect(() => {
     configuredRef.current = isConfigured;
@@ -54,6 +56,11 @@ export function useAppleCalendar(options: UseAppleCalendarOptions = {}) {
       return;
     }
 
+    if (isFetchingRef.current) {
+      return;
+    }
+
+    isFetchingRef.current = true;
     setIsLoading(true);
     setError(null);
 
@@ -72,6 +79,7 @@ export function useAppleCalendar(options: UseAppleCalendarOptions = {}) {
       console.error('Calendar fetch error:', err);
     } finally {
       setIsLoading(false);
+      isFetchingRef.current = false;
     }
   }, [startDate, endDate]);
 
@@ -104,7 +112,13 @@ export function useAppleCalendar(options: UseAppleCalendarOptions = {}) {
 
   // Auto-sync setup (if enabled)
   useEffect(() => {
-    if (!autoSync || !isConfigured) return;
+    if (!autoSync || !isConfigured) {
+      if (timerRef.current !== null) {
+        window.clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
+      return;
+    }
 
     const syncIfDue = () => {
       const now = Date.now();
@@ -112,15 +126,24 @@ export function useAppleCalendar(options: UseAppleCalendarOptions = {}) {
         return;
       }
 
+      console.log('[Calendar] Triggering auto-sync');
       void fetchEvents();
+    };
+
+    const scheduleNext = () => {
+      if (timerRef.current !== null) {
+        window.clearTimeout(timerRef.current);
+      }
+
+      timerRef.current = window.setTimeout(() => {
+        syncIfDue();
+        scheduleNext();
+      }, syncInterval);
     };
 
     // Fetch immediately on startup and whenever the kiosk/browser becomes active again.
     void fetchEvents();
-
-    const interval = window.setInterval(() => {
-      syncIfDue();
-    }, syncInterval);
+    scheduleNext();
 
     const onVisible = () => {
       if (document.visibilityState === 'visible') {
@@ -137,7 +160,10 @@ export function useAppleCalendar(options: UseAppleCalendarOptions = {}) {
     window.addEventListener('pageshow', onFocus);
 
     return () => {
-      window.clearInterval(interval);
+      if (timerRef.current !== null) {
+        window.clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
       document.removeEventListener('visibilitychange', onVisible);
       window.removeEventListener('focus', onFocus);
       window.removeEventListener('pageshow', onFocus);
