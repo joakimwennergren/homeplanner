@@ -407,7 +407,7 @@ export default function App() {
       startDate: dateRange.startDate,
       endDate: dateRange.endDate,
       autoSync: true,
-      syncInterval: 10 * 1000,
+      syncInterval: 30 * 1000,
     });
 
   useEffect(() => {

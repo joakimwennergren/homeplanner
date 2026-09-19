@@ -92,6 +92,7 @@ class AppleCalendarService {
    */
   private parseICalendar(icsData: string, startDate: Date, endDate: Date): CalendarEvent[] {
     const events: CalendarEvent[] = [];
+    const seen = new Set<string>();
 
     try {
       const jcalData = ICAL.parse(icsData);
@@ -145,8 +146,16 @@ class AppleCalendarService {
 
         // Filter events within date range
         if (eventStart <= endDate && eventEnd >= startDate) {
+          const dedupeKey = `${String(uid ?? 'no-uid')}-${eventStart.getTime()}-${eventEnd.getTime()}-${String(summary ?? '')}-${String(location ?? '')}`;
+
+          if (seen.has(dedupeKey)) {
+            continue;
+          }
+
+          seen.add(dedupeKey);
+
           events.push({
-            id: uid as string,
+            id: `${String(uid ?? 'no-uid')}-${eventStart.getTime()}-${eventEnd.getTime()}`,
             title: summary as string,
             description: description as string | undefined,
             start: eventStart,
