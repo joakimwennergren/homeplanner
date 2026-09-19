@@ -79,7 +79,7 @@ function CalendarDay({
             {displayedEvents.map((event) => (
               <div
                 key={event.id}
-                className="truncate rounded-md bg-[#2ca7a4] px-2 py-1 text-[16px] font-medium text-white shadow-sm"
+                className="truncate rounded-md bg-[#2ca7a4] px-2 py-1 text-[20px] font-medium text-white shadow-sm"
                 title={event.title}
               >
                 {event.title}
@@ -280,6 +280,39 @@ function UpdatedIcon({ className = "" }: { className?: string }) {
   );
 }
 
+function EventIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+      className={className}
+    >
+      <rect
+        x="3.5"
+        y="5"
+        width="17"
+        height="15.5"
+        rx="2.5"
+        stroke="currentColor"
+        strokeWidth="1.8"
+      />
+      <path
+        d="M7.5 3.5v3M16.5 3.5v3M3.5 9.5h17"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+      <path
+        d="M8.5 13.2h2.5M13 13.2h2.5M8.5 17h4.5"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 function StatCard({ item }: { item: (typeof mockStats)[number] }) {
   const icon =
     item.type === "temp"
@@ -334,7 +367,7 @@ export default function App() {
       startDate: dateRange.startDate,
       endDate: dateRange.endDate,
       autoSync: true,
-      syncInterval: 10 * 60 * 1000,
+      syncInterval: 5 * 60 * 1000,
     });
 
   useEffect(() => {
@@ -351,7 +384,6 @@ export default function App() {
     void sync();
   }, [isConfigured, configure, sync, hasInitialSync]);
 
-  const headerDate = `${dayjs(selectedDate).format("D")} ${capitalizeFirstLetter(dayjs(selectedDate).format("MMMM"))}`;
   const formattedLastSync = lastSyncTime
     ? dayjs(lastSyncTime).format("HH:mm")
     : "--:--";
@@ -415,32 +447,6 @@ export default function App() {
 
         <aside className="w-[390px] shrink-0 rounded-3xl bg-[#f5f1ed] p-1">
           <div className="space-y-4">
-            <div className="rounded-2xl border border-[#dfe4e1] bg-[#f6f7f5] p-4 shadow-sm">
-              <div className="mb-3 flex items-center justify-between">
-                <h2 className="text-[18px] font-semibold text-[#1d2d2d]">
-                  Idag
-                </h2>
-                <span className="text-[14px] text-[#75817d]">{headerDate}</span>
-              </div>
-
-              <div className="flex items-center justify-between rounded-2xl border border-[#cfe2e0] bg-[#dff1ef] px-4 py-3">
-                <div className="flex items-center gap-3">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#cfe8e6] text-lg text-[#1f6864]">
-                    🕒
-                  </span>
-                  <div>
-                    <div className="text-[17px] font-semibold text-[#1d2d2d]">
-                      Emji kolla lägenhet
-                    </div>
-                    <div className="text-[13px] text-[#3f6c6a]">
-                      11:00 – 12:00
-                    </div>
-                  </div>
-                </div>
-                <span className="text-xl text-[#1d2d2d]">›</span>
-              </div>
-            </div>
-
             <div className="grid grid-cols-2 gap-4">
               {mockStats.map((item) => (
                 <StatCard key={item.label} item={item} />
@@ -468,13 +474,13 @@ export default function App() {
                   >
                     <div className="flex items-center gap-3">
                       <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#eef3f1] text-[#2e8c88]">
-                        🗓
+                        <EventIcon className="h-5 w-5" />
                       </div>
                       <div>
-                        <div className="text-[12px] text-[#5e7a78]">
+                        <div className="text-[14px] text-[#5e7a78]">
                           {item.time}
                         </div>
-                        <div className="text-[14px] font-medium text-[#1d2d2d]">
+                        <div className="text-[16px] font-medium text-[#1d2d2d]">
                           {item.title}
                         </div>
                       </div>
